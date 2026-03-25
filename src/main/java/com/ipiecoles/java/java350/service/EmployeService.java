@@ -16,7 +16,12 @@ import java.time.LocalDate;
 public class EmployeService {
 
     @Autowired
-    private EmployeRepository employeRepository;
+    private final EmployeRepository employeRepository;
+
+    public EmployeService(EmployeRepository employeRepository) {
+        this.employeRepository = employeRepository;
+
+    
 
     /**
      * Méthode enregistrant un nouvel employé dans l'entreprise
