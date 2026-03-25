@@ -89,55 +89,60 @@ public class EmployeService {
      */
     public void calculPerformanceCommercial(String matricule, Long caTraite, Long objectifCa) throws EmployeException {
 
-    // Vérifications
-    boolean caInvalide = (caTraite == null || caTraite < 0);
-    boolean objectifInvalide = (objectifCa == null || objectifCa < 0);
-    boolean matriculeInvalide = (matricule == null || !matricule.startsWith("C"));
+    verifierParametres(matricule, caTraite, objectifCa);
 
-    if (caInvalide) {
-        throw new EmployeException("Le chiffre d'affaire traité ne peut être négatif ou null !");
-    }
-
-    if (objectifInvalide) {
-        throw new EmployeException("L'objectif de chiffre d'affaire ne peut être négatif ou null !");
-    }
-
-    if (matriculeInvalide) {
-        throw new EmployeException("Le matricule ne peut être null et doit commencer par un C !");
-    }
-
-    // Recherche employé
     Employe employe = employeRepository.findByMatricule(matricule);
 
     if (employe == null) {
         throw new EmployeException("Le matricule " + matricule + " n'existe pas !");
     }
 
+    Integer performance = calculPerformance(employe, caTraite, objectifCa);
+
+    Double performanceMoyenne = employeRepository.avgPerformanceWhereMatriculeStartsWith("C");
+
+    if (performanceMoyenne != null && performance > performanceMoyenne) {
+        performance++;
+    }
+}
+
+
+    private void verifierParametres(String matricule, Long caTraite, Long objectifCa) throws EmployeException {
+
+    if (caTraite == null || caTraite < 0) {
+        throw new EmployeException("Le chiffre d'affaire traité ne peut être négatif ou null !");
+    }
+
+    if (objectifCa == null || objectifCa < 0) {
+        throw new EmployeException("L'objectif de chiffre d'affaire ne peut être négatif ou null !");
+    }
+
+    if (matricule == null || !matricule.startsWith("C")) {
+        throw new EmployeException("Le matricule ne peut être null et doit commencer par un C !");
+    }
+}
+
+
+
+    private Integer calculPerformance(Employe employe, Long caTraite, Long objectifCa) {
+
     Integer performance = Entreprise.PERFORMANCE_BASE;
 
     double ratio = caTraite / (double) objectifCa;
 
-    boolean cas2 = ratio >= 0.8 && ratio < 0.95;
-    boolean cas3 = ratio >= 0.95 && ratio <= 1.05;
-    boolean cas4 = ratio > 1.05 && ratio <= 1.2;
-    boolean cas5 = ratio > 1.2;
-
-    if (cas2) {
-        performance = Math.max(Entreprise.PERFORMANCE_BASE, employe.getPerformance() - 2);
-    } else if (cas3) {
-        performance = Math.max(Entreprise.PERFORMANCE_BASE, employe.getPerformance());
-    } else if (cas4) {
-        performance = employe.getPerformance() + 1;
-    } else if (cas5) {
-        performance = employe.getPerformance() + 4;
+    if (ratio >= 0.8 && ratio < 0.95) {
+        return Math.max(Entreprise.PERFORMANCE_BASE, employe.getPerformance() - 2);
+    } 
+    else if (ratio >= 0.95 && ratio <= 1.05) {
+        return Math.max(Entreprise.PERFORMANCE_BASE, employe.getPerformance());
+    } 
+    else if (ratio > 1.05 && ratio <= 1.2) {
+        return employe.getPerformance() + 1;
+    } 
+    else if (ratio > 1.2) {
+        return employe.getPerformance() + 4;
     }
 
-    Double performanceMoyenne = employeRepository.avgPerformanceWhereMatriculeStartsWith("C");
-
-    boolean bonus = (performanceMoyenne != null && performance > performanceMoyenne);
-
-    if (bonus) {
-        performance++;
-    }
+    return performance;
 }
 }
