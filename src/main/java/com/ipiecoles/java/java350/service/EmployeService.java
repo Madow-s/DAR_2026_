@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Service
 public class EmployeService {
 
-    @Autowired
+   
     private final EmployeRepository employeRepository;
 
     public EmployeService(EmployeRepository employeRepository) {
